@@ -1,41 +1,45 @@
 const express=require('express');
 const app=express();
-
-
-const notes=[]
+const noteModel=require('./models/note.model')
 
 app.use(express.json())
-app.post('/notes',(req,res)=>{
-    notes.push(req.body);
-    res.status(201).json({
-        message:"note added successfully"
+
+
+app.post("/notes",async (req,res)=>{
+    const data=req.body;
+    await noteModel.create({
+        title:data.title,
+        description:data.description
     })
-});
-app.get('/notes',(req,res)=>{
+    res.status(201).json({
+        message:"note created successfully"
+    })
+})
+app.get("/notes",async (req,res)=>{
+    const data= await noteModel.find()
     res.status(200).json({
         message:"notes fetched successfully",
-        notes:notes
+        notes:data
     })
 })
-app.delete('/notes/:index',(req,res)=>{
-    const index=req.params.index;
-    if(index>=0 && index<notes.length){
-        delete notes[index];
-    }
+app.delete("/notes/:id",async (req,res)=>{
+    const id=req.params.id;
+    await noteModel.findOneAndDelete({
+        _id:id
+    })
     res.status(200).json({
-        message:"note deleted successfully",
-        notes:notes
+        message:"note deleted successfully"
     })
 })
-app.patch('/notes/:index',(req,res)=>{
-    const index=req.params.index;
-    const updatedNote=req.body;
-    if(index>=0 && index<notes.length){
-        notes[index]=updatedNote;
-    }
+app.patch("/notes/:id",async (req,res)=>{
+    const id=req.params.id;
+    const description = req.body.description
+    await noteModel.findOneAndUpdate(
+        {_id:id},
+        {description:description}
+    )
     res.status(200).json({
-        message:"note updated successfully",
-        notes:notes
+        message:"note updated successfully"
     })
 })
 module.exports=app;
